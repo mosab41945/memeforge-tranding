@@ -100,24 +100,13 @@ const CreateMemecoin = () => {
     setIsCreating(true);
 
     try {
-      // Create contract factory
-      const contractFactory = new ethers.ContractFactory(ERC20_ABI, ERC20_BYTECODE, signer);
-      
-      // Convert total supply to wei (considering decimals)
-      const totalSupplyWei = ethers.parseUnits(tokenData.totalSupply, parseInt(tokenData.decimals));
-      
       toast({
         title: "Criando Token...",
         description: "Preparando o contrato inteligente",
       });
 
-      // Deploy contract
-      const contract = await contractFactory.deploy(
-        tokenData.name,
-        tokenData.symbol,
-        totalSupplyWei,
-        parseInt(tokenData.decimals)
-      );
+      // Deploy using our helper function
+      const contract = await deployMemecoin(signer, tokenData);
 
       toast({
         title: "Aguardando Confirmação...",
