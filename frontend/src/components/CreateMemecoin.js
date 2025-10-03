@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { ethers } from 'ethers';
+import { deployMemecoin, TOKEN_TEMPLATES } from '../contracts/MemecoinContract';
 
 const CreateMemecoin = () => {
   const { signer, account, chainId, isConnected } = useWeb3();
