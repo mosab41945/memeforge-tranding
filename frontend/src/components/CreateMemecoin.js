@@ -215,16 +215,29 @@ const CreateMemecoin = () => {
             <CardTitle className="text-lg">Detalhes do Token</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-4 flex-wrap">
               <Button 
                 onClick={generateRandomToken} 
                 variant="outline" 
                 size="sm"
-                className="mb-4"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
-                Gerar Aleatório
+                Template Aleatório
               </Button>
+              
+              <div className="flex gap-1 flex-wrap">
+                {Object.entries(availableTemplates).map(([key, template]) => (
+                  <Button
+                    key={key}
+                    onClick={() => applyTemplate(key)}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    {template.symbol}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             <div>
