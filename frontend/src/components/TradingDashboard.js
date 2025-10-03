@@ -417,6 +417,11 @@ const TradingDashboard = () => {
           </Card>
         </TabsContent>
 
+        {/* Create Memecoin Tab */}
+        <TabsContent value="create" className="space-y-6">
+          <CreateMemecoin />
+        </TabsContent>
+
         {/* History Tab */}
         <TabsContent value="history" className="space-y-6">
           <Card>
