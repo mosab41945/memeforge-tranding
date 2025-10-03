@@ -37,6 +37,40 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Trading Models
+class WalletConnection(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    address: str
+    wallet_type: str  # "metamask" or "binance"
+    chain_id: int
+    connected_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Portfolio(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    wallet_address: str
+    tokens: List[Dict] = []
+    total_value_usd: float = 0.0
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+
+class Trade(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    wallet_address: str
+    token_symbol: str
+    token_address: str
+    trade_type: str  # "buy" or "sell"
+    amount: float
+    price_usd: float
+    transaction_hash: Optional[str] = None
+    status: str = "pending"  # "pending", "completed", "failed"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class TradeRequest(BaseModel):
+    wallet_address: str
+    token_symbol: str
+    token_address: str
+    trade_type: str
+    amount: float
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
