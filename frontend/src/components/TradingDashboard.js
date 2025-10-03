@@ -19,6 +19,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import CreateMemecoin from './CreateMemecoin';
 
 const TradingDashboard = () => {
   const { account, isConnected } = useWeb3();
