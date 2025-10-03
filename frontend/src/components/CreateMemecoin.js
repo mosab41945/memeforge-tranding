@@ -56,21 +56,25 @@ const CreateMemecoin = () => {
   };
 
   const generateRandomToken = () => {
-    const randomName = generateRandomName();
-    const randomSymbol = generateRandomSymbol();
-    const randomSupply = (Math.floor(Math.random() * 900000000) + 100000000).toString(); // 100M - 1B
+    const templates = Object.keys(availableTemplates);
+    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+    const template = availableTemplates[randomTemplate];
     
-    setTokenData({
-      name: randomName,
-      symbol: randomSymbol,
-      totalSupply: randomSupply,
-      description: `${randomName} - A revolutionary memecoin that will take you to the moon! 🚀`,
-      decimals: '18'
-    });
+    setTokenData(template);
 
     toast({
-      title: "Token Gerado! 🎲",
-      description: `Criado ${randomName} (${randomSymbol}) com ${randomSupply} tokens`,
+      title: "Template Aplicado! 🎲",
+      description: `Aplicado template: ${template.name} (${template.symbol})`,
+    });
+  };
+
+  const applyTemplate = (templateKey) => {
+    const template = availableTemplates[templateKey];
+    setTokenData(template);
+    
+    toast({
+      title: "Template Aplicado! ✨",
+      description: `Template ${template.name} aplicado`,
     });
   };
 
