@@ -231,6 +231,54 @@ async def get_wallet_trades(address: str):
         logger.error(f"Error fetching trades: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch trades")
 
+# Memecoin Creation API Routes
+@api_router.post("/memecoin/create")
+async def create_memecoin(memecoin_data: CreateMemecoinRequest):
+    """Create a new memecoin entry after blockchain deployment"""
+    try:
+        memecoin = Memecoin(**memecoin_data.dict())
+        
+        # Store memecoin in database
+        await db.memecoins.insert_one(memecoin.dict())
+        
+        return {"message": "Memecoin created successfully", "memecoin": memecoin}
+    except Exception as e:
+        logger.error(f"Error creating memecoin: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create memecoin")
+
+@api_router.get("/memecoin/list")
+async def list_memecoins():
+    """Get list of all created memecoins"""
+    try:
+        memecoins = await db.memecoins.find().to_list(100)
+        return {"memecoins": memecoins}
+    except Exception as e:
+        logger.error(f"Error fetching memecoins: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch memecoins")
+
+@api_router.get("/memecoin/user/{creator_address}")
+async def get_user_memecoins(creator_address: str):
+    """Get memecoins created by a specific user"""
+    try:
+        memecoins = await db.memecoins.find({"creator_address": creator_address}).to_list(50)
+        return {"memecoins": memecoins}
+    except Exception as e:
+        logger.error(f"Error fetching user memecoins: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user memecoins")
+
+@api_router.get("/memecoin/{contract_address}")
+async def get_memecoin_details(contract_address: str):
+    """Get details of a specific memecoin"""
+    try:
+        memecoin = await db.memecoins.find_one({"contract_address": contract_address})
+        if not memecoin:
+            raise HTTPException(status_code=404, detail="Memecoin not found")
+        
+        return {"memecoin": memecoin}
+    except Exception as e:
+        logger.error(f"Error fetching memecoin details: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch memecoin details")
+
 # Include the router in the main app
 app.include_router(api_router)
 
