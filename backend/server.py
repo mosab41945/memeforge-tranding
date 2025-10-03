@@ -251,6 +251,10 @@ async def list_memecoins():
     """Get list of all created memecoins"""
     try:
         memecoins = await db.memecoins.find().to_list(100)
+        # Convert ObjectId to string for JSON serialization
+        for memecoin in memecoins:
+            if '_id' in memecoin:
+                memecoin['_id'] = str(memecoin['_id'])
         return {"memecoins": memecoins}
     except Exception as e:
         logger.error(f"Error fetching memecoins: {e}")
