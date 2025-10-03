@@ -265,6 +265,10 @@ async def get_user_memecoins(creator_address: str):
     """Get memecoins created by a specific user"""
     try:
         memecoins = await db.memecoins.find({"creator_address": creator_address}).to_list(50)
+        # Convert ObjectId to string for JSON serialization
+        for memecoin in memecoins:
+            if '_id' in memecoin:
+                memecoin['_id'] = str(memecoin['_id'])
         return {"memecoins": memecoins}
     except Exception as e:
         logger.error(f"Error fetching user memecoins: {e}")
