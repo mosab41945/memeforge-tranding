@@ -71,10 +71,43 @@ class TradeRequest(BaseModel):
     trade_type: str
     amount: float
 
+# Crypto price API helpers
+async def fetch_crypto_prices(symbols: List[str]) -> Dict:
+    """Fetch crypto prices from CoinGecko API"""
+    try:
+        symbol_string = ",".join(symbols).lower()
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol_string}&vs_currencies=usd&include_24hr_change=true"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    return {}
+    except Exception as e:
+        logger.error(f"Error fetching crypto prices: {e}")
+        return {}
+
+async def search_tokens(query: str) -> List[Dict]:
+    """Search for tokens by name/symbol"""
+    try:
+        url = f"https://api.coingecko.com/api/v3/search?query={query}"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data.get('coins', [])[:20]  # Return top 20 results
+                else:
+                    return []
+    except Exception as e:
+        logger.error(f"Error searching tokens: {e}")
+        return []
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "MemeForge Trading API - Ready for Real Trading! 🚀"}
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -87,6 +120,92 @@ async def create_status_check(input: StatusCheckCreate):
 async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
+
+# Trading API Routes
+@api_router.get("/crypto/prices")
+async def get_crypto_prices(symbols: str = "bitcoin,ethereum,binancecoin,dogecoin,shiba-inu,pepe"):
+    """Get current prices for specified cryptocurrencies"""
+    symbol_list = symbols.split(",")
+    prices = await fetch_crypto_prices(symbol_list)
+    return {"prices": prices, "timestamp": datetime.utcnow().isoformat()}
+
+@api_router.get("/crypto/search")
+async def search_crypto_tokens(q: str):
+    """Search for crypto tokens by name or symbol"""
+    if len(q) < 2:
+        raise HTTPException(status_code=400, detail="Query must be at least 2 characters long")
+    
+    tokens = await search_tokens(q)
+    return {"tokens": tokens}
+
+@api_router.get("/crypto/trending")
+async def get_trending_coins():
+    """Get trending cryptocurrencies"""
+    try:
+        url = "https://api.coingecko.com/api/v3/search/trending"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return {"trending": data.get('coins', [])}
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to fetch trending coins")
+    except Exception as e:
+        logger.error(f"Error fetching trending coins: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@api_router.post("/wallet/connect")
+async def connect_wallet(wallet_data: WalletConnection):
+    """Connect a wallet (MetaMask or Binance)"""
+    try:
+        # Store wallet connection
+        await db.wallets.insert_one(wallet_data.dict())
+        return {"message": "Wallet connected successfully", "wallet": wallet_data}
+    except Exception as e:
+        logger.error(f"Error connecting wallet: {e}")
+        raise HTTPException(status_code=500, detail="Failed to connect wallet")
+
+@api_router.get("/wallet/{address}/portfolio")
+async def get_portfolio(address: str):
+    """Get portfolio for a wallet address"""
+    try:
+        portfolio = await db.portfolios.find_one({"wallet_address": address})
+        if not portfolio:
+            # Create empty portfolio
+            new_portfolio = Portfolio(wallet_address=address, tokens=[], total_value_usd=0.0)
+            await db.portfolios.insert_one(new_portfolio.dict())
+            return new_portfolio.dict()
+        
+        return portfolio
+    except Exception as e:
+        logger.error(f"Error fetching portfolio: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch portfolio")
+
+@api_router.post("/trade")
+async def create_trade(trade_request: TradeRequest):
+    """Create a new trade order"""
+    try:
+        # Get current price for the token
+        trade = Trade(**trade_request.dict(), price_usd=0.0)  # Price will be updated in real implementation
+        
+        # Store trade in database
+        await db.trades.insert_one(trade.dict())
+        
+        return {"message": "Trade order created", "trade_id": trade.id, "trade": trade}
+    except Exception as e:
+        logger.error(f"Error creating trade: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create trade")
+
+@api_router.get("/wallet/{address}/trades")
+async def get_wallet_trades(address: str):
+    """Get trade history for a wallet"""
+    try:
+        trades = await db.trades.find({"wallet_address": address}).to_list(100)
+        return {"trades": trades}
+    except Exception as e:
+        logger.error(f"Error fetching trades: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch trades")
 
 # Include the router in the main app
 app.include_router(api_router)
