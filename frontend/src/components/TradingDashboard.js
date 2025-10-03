@@ -243,10 +243,11 @@ const TradingDashboard = () => {
       </div>
 
       <Tabs defaultValue="market" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="market">Mercado</TabsTrigger>
           <TabsTrigger value="portfolio">Portfólio</TabsTrigger>
           <TabsTrigger value="trade">Trading</TabsTrigger>
+          <TabsTrigger value="create">Criar Memecoin</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
 
