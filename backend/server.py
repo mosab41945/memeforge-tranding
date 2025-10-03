@@ -45,6 +45,30 @@ class WalletConnection(BaseModel):
     chain_id: int
     connected_at: datetime = Field(default_factory=datetime.utcnow)
 
+class Memecoin(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    symbol: str
+    contract_address: str
+    total_supply: str
+    decimals: int
+    description: Optional[str] = ""
+    creator_address: str
+    chain_id: int
+    transaction_hash: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class CreateMemecoinRequest(BaseModel):
+    name: str
+    symbol: str
+    contract_address: str
+    total_supply: str
+    decimals: int
+    description: Optional[str] = ""
+    creator_address: str
+    chain_id: int
+    transaction_hash: Optional[str] = None
+
 class Portfolio(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     wallet_address: str
